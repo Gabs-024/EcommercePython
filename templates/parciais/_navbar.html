@@ -1,4 +1,5 @@
 {% load static %}
+{% load omfilters %}
 
 <nav class="navbar navbar-dark bg-primary navbar-expand-lg">
     <a class="navbar-brand" href="{% url 'produto:lista' %}">Gabs Ecommerce</a>
@@ -10,7 +11,7 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ml-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="{% url 'produto:lista' %}">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">Link</a>
@@ -30,19 +31,21 @@
             <li class="nav-item">
                 <a class="nav-link disabled" href="#">Disabled</a>
             </li>
+            {% if request.session.carrinho %}
             <li class="nav-item">
-                <a class="nav-link nav-cart-link active" href="#">
+                <a class="nav-link nav-cart-link active" href="{% url 'produto:carrinho' %}">
                     <span class="nav-cart-text mr-1">
                         Carrinho
                     </span>
                     <span class="nav-cart-count mr-1">
-                        <strong>109x</strong>
+                        <strong> {{ request.session.carrinho[total_carrinho] }}x </strong>
                     </span>
                     <span class="nav-cart-icon mr-2">
                         <i class="fas fa-shopping-cart"></i>
                     </span>
                 </a>
             </li>
+            {% {% endif %}%}
         </ul>
         <form class="form-inline my-2 my-lg-0">
             <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
