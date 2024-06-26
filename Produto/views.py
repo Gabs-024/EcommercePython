@@ -5,6 +5,7 @@ from django.views import View
 from django.contrib import messages
 from django.http import HttpResponse
 from . import models
+from ..Perfil.models import Perfil
 
 class ListaProdutos(ListView):
     model = models.Produto
@@ -137,4 +138,28 @@ class Carrinho(View):
         return render(self.request, 'produto/carrinho.html', contexto)
 
 class ResumoPedido(View):
-    ...
+    def get(self, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            return redirect('perfil:criar')
+        
+        perfil = Perfil.objects.filter(usuario=self.request.user).exists() 
+
+        if not perfil:
+            messages.erros(
+                self.request,
+                'Usuário não cadastrado.'
+            )
+            return redirect('perfil:criar')
+        
+        if not self.request.session.get('carrinho'):
+            messages.erros(
+                self.request,
+                'Seu carrinho está vazio.'
+            )
+            return redirect('produto:lista')
+
+        contexto = {
+            'usuario': self.request.user,
+            'carrinho': self.request.session['carrinho']
+        }
+        return render(self.request, 'produto/resumopedido.html', contexto)
