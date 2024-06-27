@@ -2,29 +2,29 @@ from typing import Any
 from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect
 from django.views import View
-from django.views.generic import DetailView
+from django.views.generic import ListView, DetailView
 from django.contrib import messages
 
 from ..Produto.models import Variacao
 from ..utils import utils
 from .models import Pedido, ItemPedido
 
-class DispatchLoginRequired(View):
+class DispatchLoginRequiredMixin(View):
     def dispatch(self, *args, **kwargs):
         if not self.request.user.is_authenticated:
             return redirect('perfil:criar')
         return super().dispatch(*args, **kwargs)
     
-class Pagar(DispatchLoginRequired, DetailView):
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset(*args, **kwargs)
+        qs = qs.filter(usuario=self.request.user)
+        return qs
+    
+class Pagar(DispatchLoginRequiredMixin, DetailView):
         template_name = 'pedido/pagar.html'
         model = Pedido
         pk_url_kwarg = 'pk'
         context_object_name = 'pedido'
-
-        def get_queryset(self, *args, **kwargs):
-            qs = super().get_queryset(*args, **kwargs)
-            qs = qs.filter(usuario=self.request.user)
-            return qs
 
 class SalvarPedido(View):
     template_name = 'pedido/pagar.html'
@@ -104,8 +104,15 @@ class SalvarPedido(View):
         # return render  (self.request, self.template_name, contexto)
         return redirect('pedido:lista')
 
-class Lista(View):
-    ...
+class Lista(DispatchLoginRequiredMixin, ListView):
+    model = Pedido
+    context_object_name = 'pedidos'
+    template_name = 'pedido/lista.html'
+    paginate_by = 10
+    ordering = ['-id']
 
 class Detalhe(View):
-    ...
+    model = Pedido
+    context_object_name = 'pedido'
+    template_name = 'pedido/detalhe.html'
+    pk_url_kwarg = 'pk'
