@@ -1,12 +1,12 @@
 from typing import Any
 from django.db.models.query import QuerySet
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, reverse, redirect
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.contrib import messages
 
-from ..Produto.models import Variacao
-from ..utils import utils
+from Produto.models import Variacao
+from utils import utils
 from .models import Pedido, ItemPedido
 
 class DispatchLoginRequiredMixin(View):
@@ -36,10 +36,11 @@ class SalvarPedido(View):
                 'Você precisa efetuar o login.'
             )
             return redirect('perfil:criar')
+        
         if not self.request.session.get('carrinho'):
-            messages.error(
+            messages.success(
                 self.request,
-                'Carrinho vazio.'
+                'Pedido realizado com sucesso.'
             )
             return redirect('produto:lista')
         
@@ -47,11 +48,11 @@ class SalvarPedido(View):
         carrinho_variacao_id = [v for v in carrinho]
         bd_variacoes = list(
             Variacao.objects.select_related('produto')
-            .filter(id_in=carrinho_variacao_id)
+            .filter(id__in=carrinho_variacao_id)
         )
 
         for variacao in bd_variacoes:
-            vid = variacao.id
+            vid = str(variacao.id)
 
             estoque = variacao.estoque
             qtd_carrinho = carrinho[vid]['quantidade']
@@ -92,18 +93,25 @@ class SalvarPedido(View):
                     produto_id = v['produto_id'],
                     variacao = v['variacao_nome'],
                     variacao_id = v['variacao_id'],
-                    preco = v['preco_quantitativo']
-                    preco_promocional = v['preco_quantitativo_promocional']
-                    quantidade = v['quantidade']
-                    imagem = v['imagem']
+                    preco = v['preco_quantitativo'],
+                    preco_promocional = v['preco_quantitativo_promocional'],
+                    quantidade = v['quantidade'],
+                    imagem = v['imagem'],
                 ) for v in carrinho.values()
             ]
         )
 
         del self.request.session['carrinho']
-        # return render  (self.request, self.template_name, contexto)
-        return redirect('pedido:lista')
 
+        return redirect(
+            reverse(
+                'pedido:pagar',
+                kwargs={
+                    'pk': pedido.pk
+                }
+            )
+        )
+    
 class Lista(DispatchLoginRequiredMixin, ListView):
     model = Pedido
     context_object_name = 'pedidos'
@@ -112,7 +120,7 @@ class Lista(DispatchLoginRequiredMixin, ListView):
     ordering = ['-id']
 
 class Detalhe(View):
-    model = Pedido
-    context_object_name = 'pedido'
-    template_name = 'pedido/detalhe.html'
-    pk_url_kwarg = 'pk'
+    def get(self, request, *args, **kwargs):
+        pedido_id = kwargs.get('pk')
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+        return render(request, 'pedido/detalhe.html', {'pedido': pedido})

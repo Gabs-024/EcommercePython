@@ -1,5 +1,4 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView
 from django.views import View
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -61,7 +60,7 @@ class BasePerfil(View):
     
 class Criar(BasePerfil):
     def post(self, *args, **kwargs):
-        if not self.username.is_valid() or not self.perfilform.is_valid():
+        if not self.userform.is_valid() or not self.perfilform.is_valid():
             messages.error(
                 self.request,
                 'Verifique se todos os campos foram preenchidos corretamente.'
@@ -127,7 +126,6 @@ class Criar(BasePerfil):
         )
 
         return redirect('produto:carrinho')
-        return self.renderizar
 
 class Atualizar(View):
     ...
@@ -156,7 +154,7 @@ class Login(View):
 
         login(self.request, user=usuario)
 
-        messages.sucess(
+        messages.success(
             self.request,
             'Login realizado com sucesso!'
         )
