@@ -3,7 +3,7 @@ import os
 from PIL import Image
 from django.conf import settings
 from django.utils.text import slugify
-from ..utils import utils
+from utils import utils
 
 class Produto(models.Model):
     nome = models.CharField(max_length=255)
@@ -54,7 +54,7 @@ class Produto(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            slug = f'{slugify(self.nome)}'
+            slug = slugify(self.nome)
             self.slug = slug
 
         super().save(*args, **kwargs)

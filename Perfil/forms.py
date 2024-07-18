@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from . import models
 
 class PerfilForm(forms.ModelForm):
@@ -20,9 +21,8 @@ class UserForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
+        self.usuario = kwargs.pop('usuario', None)
         super().__init__(*args, **kwargs)
-
-        self.usuario = usuario
 
     class Meta:
         model = User
@@ -34,8 +34,7 @@ class UserForm(forms.ModelForm):
                     'email')
     
     def clean (self, *args, **kwargs):
-        data = self.data
-        cleaned = self.cleaned_data
+        cleaned = super().clean()
         validation_error_msgs = {}
 
         usuario_data = cleaned.get('username')
@@ -89,3 +88,6 @@ class UserForm(forms.ModelForm):
 
         if validation_error_msgs:
             raise(forms.ValidationError(validation_error_msgs))
+        
+        return cleaned
+        

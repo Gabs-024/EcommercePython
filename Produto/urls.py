@@ -1,16 +1,19 @@
 from django.urls import path
-from . import views
+from .views import (
+    ListaProdutos, DetalheProduto, AdicionarAoCarrinho, 
+    RemoverDoCarrinho, Carrinho, ResumoPedido, Busca
+)
 
 app_name = 'produto'
 
 urlpatterns = [
-    path('', views.ListaProdutos.as_view(), name="lista" ),
-    path('<slug>', views.DetalheProduto.as_view(), name="detalhe" ),
-    path('adicionaraocarrinho/', views.AdicionarAoCarrinho.as_view(), 
+    path('', ListaProdutos.as_view(), name="lista" ),
+    path('adicionaraocarrinho/', AdicionarAoCarrinho.as_view(), 
         name="adicionaraocarrinho" ),
-    path('removerdocarrinho/', views.RemoverDoCarrinho.as_view(), 
+    path('removerdocarrinho/', RemoverDoCarrinho.as_view(), 
         name="removerdocarrinho" ),
-    path('carrinho/', views.Carrinho.as_view(), name="carrinho" ),
-    path('resumopedido/', views.ResumoPedido.as_view(), name="resumopedido" ),
-    path('busca/', views.Busca.as_view(), name="busca" )
+    path('carrinho/', Carrinho.as_view(), name="carrinho" ),
+    path('resumopedido/', ResumoPedido.as_view(), name="resumopedido" ),
+    path('busca/', Busca.as_view(), name="busca" ),
+    path('<slug:slug>/', DetalheProduto.as_view(), name="detalhe" ),
 ]

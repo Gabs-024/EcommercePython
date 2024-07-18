@@ -34,7 +34,7 @@
         <p>Para se cadastrar, preencha o formulário com suas informações.</p>
         {% endblock %}
 
-        <form action="POST" action="">
+        <form method="POST">
             {% csrf_token %}
             {{ userform | crispy }}
             {{ perfilform | crispy }}

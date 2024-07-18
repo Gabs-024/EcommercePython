@@ -1,4 +1,5 @@
 from typing import Any
+from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.views.generic.list import ListView
@@ -8,7 +9,8 @@ from django.contrib import messages
 from django.db.models import Q
 
 from . import models
-from ..Perfil.models import Perfil
+from Perfil.models import Perfil
+from Produto.models import Produto
 
 class ListaProdutos(ListView):
     model = models.Produto
@@ -37,8 +39,12 @@ class Busca(ListaProdutos):
 class DetalheProduto(DetailView):
     model = models.Produto
     template_name = 'produto/detalhe.html'
-    context_object_name = 'produtos'
-    slug_url_kwarg = 'slug'
+    context_object_name = 'produto'
+    
+    def get_object(self):
+        return get_object_or_404(Produto, slug=self.kwargs.get("slug"))
+
+
 
 class AdicionarAoCarrinho(View):
     def get(self, *args, **kwargs):
@@ -47,7 +53,7 @@ class AdicionarAoCarrinho(View):
             reverse('produto:lista')
         )
         variacao_id = self.request.GET.get('vid')
-
+        print("variacao ID:", variacao_id)
         if not variacao_id:
             messages.error(
                 self.request,
@@ -56,6 +62,7 @@ class AdicionarAoCarrinho(View):
             return redirect(http_referer)
         
         variacao = get_object_or_404(models.Variacao, id=variacao_id)
+        print("Variacao: ", variacao)
         produto = variacao.produto
         estoque = variacao.estoque
 
@@ -122,7 +129,7 @@ class AdicionarAoCarrinho(View):
         messages.success(
             self.request,
             f'Produto {produto_nome} {variacao_nome} adicionado com sucesso'
-            f'carrinho {carrinho[variacao_id]["qunatidade"]}x.'
+            f' ao carrinho {carrinho[variacao_id]["quantidade"]}x.'
         )
         return redirect(http_referer)
 
@@ -166,14 +173,14 @@ class ResumoPedido(View):
         perfil = Perfil.objects.filter(usuario=self.request.user).exists() 
 
         if not perfil:
-            messages.erros(
+            messages.error(
                 self.request,
                 'Usuário não cadastrado.'
             )
             return redirect('perfil:criar')
         
         if not self.request.session.get('carrinho'):
-            messages.erros(
+            messages.error(
                 self.request,
                 'Seu carrinho está vazio.'
             )
@@ -181,6 +188,6 @@ class ResumoPedido(View):
 
         contexto = {
             'usuario': self.request.user,
-            'carrinho': self.request.session['carrinho']
+            'carrinho': self.request.session['carrinho'],
         }
         return render(self.request, 'produto/resumopedido.html', contexto)
